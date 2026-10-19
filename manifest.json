@@ -29,7 +29,8 @@
       "downloadParallel": 2,
       "downloadMaxMB": 1024,
       "downloadCleanupDays": 7,
-      "feedDays": 14
+      "feedDays": 14,
+      "volume": 100
     },
     "schema": [
       {
@@ -112,6 +113,16 @@
         "step": 1,
         "defaultValue": 14,
         "description": "How far back the Feed tab looks across all your shows."
+      },
+      {
+        "key": "volume",
+        "type": "integer",
+        "label": "Player volume",
+        "min": 0,
+        "max": 130,
+        "step": 5,
+        "defaultValue": 100,
+        "description": "mpv's volume for podcasts, on top of the system volume. Above 100 boosts quiet shows."
       }
     ]
   }

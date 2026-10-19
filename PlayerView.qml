@@ -338,6 +338,12 @@ Column {
     }
   }
 
+  // ---- Volume (fork addition).
+  VolumeRow {
+    visible: !!view.episode
+    panel: view.panel
+  }
+
   // ---- Chapters, when the feed has them.
   Column {
     visible: !!view.episode && view.panel.chapters.length > 0
