@@ -112,6 +112,7 @@ Panel {
   // directory results underneath them.
   readonly property var rows: {
     if (view === "inbox") return inbox
+    if (view === "feed") return feed.episodes
     if (view === "queue") return queue
     if (view === "shows") {
       if (detailShowId) return detailEpisodes
@@ -153,6 +154,8 @@ Panel {
 
   // Offline downloads (fork addition) — see Downloads.qml.
   readonly property Downloads offline: Downloads { panel: root }
+  // The Feed view's data (fork addition) — see Feed.qml.
+  readonly property Feed feed: Feed { panel: root }
 
   // -------------------------------------------------------------- helpers
 
@@ -173,7 +176,7 @@ Panel {
 
   function setView(next) {
     // Asking for a view is also a way out of the settings page — otherwise
-    // 1-4 look broken while ⚙ is open.
+    // 1-5 look broken while ⚙ is open.
     settingsMode = false
     if (view === next) return
     view = next
@@ -974,7 +977,7 @@ Panel {
     if (view === "inbox") {
       enqueueEpisode(row, false)
       note("queued · " + row.title)
-    } else if (view === "queue") {
+    } else if (view === "queue" || view === "feed") {
       playEpisode(row, {})
     } else if (view === "shows") {
       if (detailShowId) enqueueEpisode(row, false)
@@ -1002,7 +1005,7 @@ Panel {
   function deleteCursor() {
     var row = cursorRow()
     if (!row) return
-    if (view === "inbox") archiveEpisode(row)
+    if (view === "inbox" || view === "feed") archiveEpisode(row)
     else if (view === "queue") removeFromQueue(row)
     else if (view === "shows" && detailShowId) archiveEpisode(row)
     else if (isDirectoryRow(row)) { searchResults = []; cursor = 0 }
@@ -1021,7 +1024,7 @@ Panel {
     var row = cursorRow()
     switch (key) {
     case "a":
-      if (view === "inbox" || (view === "shows" && detailShowId)) archiveEpisode(row)
+      if (view === "inbox" || view === "feed" || (view === "shows" && detailShowId)) archiveEpisode(row)
       break
     case "A":
       if (view === "inbox") archiveAll()
@@ -1065,7 +1068,7 @@ Panel {
       if (view === "shows" && detailShowId) unarchiveEpisode(row)
       break
     case "d":
-      if (row && (view === "inbox" || view === "queue" || (view === "shows" && detailShowId)))
+      if (row && (view === "inbox" || view === "feed" || view === "queue" || (view === "shows" && detailShowId)))
         offline.toggle(row)
       break
     }
@@ -1073,9 +1076,10 @@ Panel {
 
   function handleDigit(digit) {
     if (digit === 1) setView("inbox")
-    else if (digit === 2) setView("queue")
-    else if (digit === 3) setView("player")
-    else if (digit === 4) setView("shows")
+    else if (digit === 2) setView("feed")
+    else if (digit === 3) setView("queue")
+    else if (digit === 4) setView("player")
+    else if (digit === 5) setView("shows")
   }
 
   // ------------------------------------------------------------ settings
@@ -1308,6 +1312,7 @@ Panel {
             Repeater {
               model: [
                 { key: "inbox", label: "Inbox", icon: "" },
+                { key: "feed", label: "Feed", icon: "\uf09e" },
                 { key: "queue", label: "Queue", icon: "" },
                 { key: "player", label: "Player", icon: "" },
                 { key: "shows", label: "Shows", icon: "" }
@@ -1433,6 +1438,12 @@ Panel {
             panel: root
           }
 
+          FeedView {
+            visible: !root.settingsMode && root.view === "feed"
+            width: parent.width
+            panel: root
+          }
+
           QueueView {
             visible: !root.settingsMode && root.view === "queue"
             width: parent.width
@@ -1468,16 +1479,18 @@ Panel {
             topPadding: Style.space(4)
             text: {
               if (root.view === "inbox")
-                return "enter queue · space play · a archive · A archive all · x archive · d download · 1-4 views"
+                return "enter queue · space play · a archive · A archive all · x archive · d download · 1-5 views"
+              if (root.view === "feed")
+                return "enter play · q queue · d download · a archive · 1-5 views"
               if (root.view === "queue")
-                return "enter play · shift+↑↓ reorder · x remove · d download · 1-4 views"
+                return "enter play · shift+↑↓ reorder · x remove · d download · 1-5 views"
               if (root.view === "player")
-                return "space play/pause · ←/→ skip · -/+ speed · b voice boost · 1-4 views"
+                return "space play/pause · ←/→ skip · -/+ speed · b voice boost · 1-5 views"
               if (root.detailShowId)
-                return "enter queue · space play · a archive · d download · ← back · 1-4 views"
+                return "enter queue · space play · a archive · d download · ← back · 1-5 views"
               return root.cursorIsDirectory
-                ? "enter subscribe · x dismiss results · / search again · 1-4 views"
-                : "/ search · enter open · x unsubscribe · 1-4 views"
+                ? "enter subscribe · x dismiss results · / search again · 1-5 views"
+                : "/ search · enter open · x unsubscribe · 1-5 views"
             }
             color: root.dim
             font.family: root.fontName
