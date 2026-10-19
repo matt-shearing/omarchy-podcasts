@@ -28,7 +28,8 @@
       "voiceBoost": false,
       "downloadParallel": 2,
       "downloadMaxMB": 1024,
-      "downloadCleanupDays": 7
+      "downloadCleanupDays": 7,
+      "feedDays": 14
     },
     "schema": [
       {
@@ -101,6 +102,16 @@
         "step": 1,
         "defaultValue": 7,
         "description": "A downloaded episode you have finished is deleted this many days later. 0 keeps it."
+      },
+      {
+        "key": "feedDays",
+        "type": "integer",
+        "label": "Feed shows the last (days)",
+        "min": 1,
+        "max": 365,
+        "step": 1,
+        "defaultValue": 14,
+        "description": "How far back the Feed tab looks across all your shows."
       }
     ]
   }

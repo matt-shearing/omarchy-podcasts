@@ -31,6 +31,10 @@ pick up where you left off.
   the box. Shows you already have sort to the top; the rest appear underneath,
   five at a time. Paste an RSS URL for anything the directory does not list —
   including private Patreon and Supercast feeds.
+- **A feed of everything recent.** The Feed tab lists every episode from
+  every show over the last 14 days, newest first. Play, queue or download
+  straight from it; unlike the inbox, nothing leaves it when you act on it.
+  `−` and `+` change how far back it looks. *(This fork.)*
 - **Offline downloads.** Press `d` on any episode to download it; it then
   plays from disk with no connection. Shows can download new episodes on
   their own, and played downloads are deleted after a week. *(This fork.)*
@@ -71,7 +75,9 @@ add private Patreon and Supercast feeds, which no directory lists.
 
 New episodes then start arriving in your **Inbox**.
 
-The four views are `1`–`4`, or click the tabs.
+The five views are `1`–`5` (Inbox, Feed, Queue, Player, Shows), or click
+the tabs. In the Feed, `Enter` and `Space` play, `q` queues, `d` downloads
+and `a` or `x` archives.
 
 | Key | Inbox | Queue | Player | Shows |
 | --- | --- | --- | --- | --- |
@@ -110,6 +116,7 @@ The ⚙ button, or `omarchy bar set`:
 | `podcastIndexSecret` | *(empty)* | Paired with the key above |
 | `downloadParallel` | `2` | How many episodes download at once (1–6) |
 | `downloadMaxMB` | `1024` | Episodes larger than this many MB are refused |
+| `feedDays` | `14` | How many days back the Feed tab looks (also its `−` / `+` buttons) |
 | `downloadCleanupDays` | `7` | Delete a played download this many days after you finish it; `0` keeps it |
 
 Each show also has a **Download new episodes automatically** switch on its
@@ -170,7 +177,7 @@ Run the offline test suite yourself:
 tests/run.sh
 ```
 
-309 checks, plus 64 for offline downloads, no network — a stub curl serves fixtures and simulates redirects,
+309 checks, plus 74 for this fork's downloads and feed, no network — a stub curl serves fixtures and simulates redirects,
 validators, and transport failures.
 
 ## Remove
