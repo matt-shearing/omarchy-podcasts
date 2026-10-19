@@ -4,6 +4,7 @@ import Quickshell.Io
 import qs.Commons
 import qs.Ui
 import "Model.js" as Model
+import "PlayerOwner.js" as PlayerOwner
 
 // Podcast client for the Omarchy bar: Castro's inbox triage, Overcast's Voice
 // Boost, playing through mpv.
@@ -735,6 +736,7 @@ Panel {
     }
     playerStarted = true
     attaching = false
+    PlayerOwner.take(root)
     if (!socketReady && Date.now() - launchedAt > 5000) {
       launchedAt = Date.now()
       mpvProc.startDetached()
@@ -994,6 +996,7 @@ Panel {
   // is playing is left running, so a shell restart does not cut the audio.
   Component.onDestruction: {
     if (socketReady && !playing) send(Model.ipc(["quit"]))
+    PlayerOwner.release(root)
   }
 
   // ------------------------------------------- persistent player (fork)
@@ -1005,7 +1008,7 @@ Panel {
   // An mpv left playing by the previous shell: connect to it instead of
   // starting another. Gives up quietly after a couple of seconds.
   function attachToRunningPlayer() {
-    if (!playerAvailable) return
+    if (!playerAvailable || !PlayerOwner.claim(root)) return
     attaching = true
     attachTries = 0
     playerStarted = true
