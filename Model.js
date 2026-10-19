@@ -531,6 +531,17 @@ function downloadTooltip(state, item) {
   return "Download for offline (d)"
 }
 
+// ------------------------------------------------- media title (fork)
+
+// "Show — Episode" for MPRIS. Most podcast files carry no artist tag, so the
+// show's name has to travel in the title or the bar never shows it.
+function mediaTitle(episode) {
+  if (!episode) return ""
+  var title = String(episode.title || "")
+  var show = String(episode.show || "")
+  return show && title ? show + " — " + title : (title || show)
+}
+
 // ------------------------------------------------------- feed view (fork)
 
 function feedCommand(scriptDir, days) {
@@ -539,6 +550,7 @@ function feedCommand(scriptDir, days) {
 
 if (typeof module !== "undefined") {
   module.exports.feedCommand = feedCommand
+  module.exports.mediaTitle = mediaTitle
   module.exports.downloadStatusCommand = downloadStatusCommand
   module.exports.downloadAddCommand = downloadAddCommand
   module.exports.downloadRemoveCommand = downloadRemoveCommand

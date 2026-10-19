@@ -35,6 +35,14 @@ pick up where you left off.
   every show over the last 14 days, newest first. Play, queue or download
   straight from it; unlike the inbox, nothing leaves it when you act on it.
   `−` and `+` change how far back it looks. *(This fork.)*
+- **Playback that survives a shell restart.** mpv runs on its own, so
+  restarting or updating the Omarchy shell no longer cuts the audio; the new
+  panel picks the player back up. A paused player is closed instead, and
+  resumes from its saved position. *(This fork.)*
+- **The episode's name in your media widget.** MPRIS gets "Show — Episode"
+  as the title rather than the file name, so the bar's media widget and
+  media keys show what is playing. Clicking the podcast icon while something
+  plays opens the Player. *(This fork.)*
 - **Volume.** A slider in the Player, `↑`/`↓` to step it, `m` to mute.
   It goes up to 130% for quiet shows and is remembered. *(This fork.)*
 - **Offline downloads.** Press `d` on any episode to download it; it then

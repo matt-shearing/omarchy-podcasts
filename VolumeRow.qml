@@ -18,8 +18,8 @@ Item {
 
   PanelActionButton {
     id: muteButton
-    iconText: row.panel.muted || row.shown === 0 ? ""
-      : (row.shown < 50 ? "" : "")
+    iconText: row.panel.muted || row.shown === 0 ? "\uf026"
+      : (row.shown < 50 ? "\uf027" : "\uf028")
     tooltipText: row.panel.muted ? "Unmute (m)" : "Mute (m)"
     foreground: row.panel.muted ? Color.urgent : row.panel.dim
     hoverColor: Color.accent

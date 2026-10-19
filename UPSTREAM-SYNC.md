@@ -2,9 +2,10 @@
 
 This fork is `matt-shearing/omarchy-podcasts`. It adds offline downloads to
 [Bottelet/omarchy-podcasts](https://github.com/Bottelet/omarchy-podcasts).
-It also adds a Feed tab and a volume control. Most of the additions live in new files
+It also adds a Feed tab, a volume control, a player that survives shell
+restarts, and episode names for MPRIS. Most of the additions live in new files
 (`scripts/downloads.py`, `scripts/feed.py`, `Feed.qml`, `FeedView.qml`,
-`VolumeRow.qml`,
+`VolumeRow.qml`, `PlayerOwner.js`,
 `Downloads.qml`, `DownloadButton.qml`, `DownloadSettings.qml`,
 `tests/downloads.sh`, `UPSTREAM-SYNC.md`). Upstream's files carry only short
 hooks, each marked "fork addition", so most upstream changes merge without
@@ -53,7 +54,9 @@ git remote add upstream https://github.com/Bottelet/omarchy-podcasts.git
      `feed` property, the `"feed"` cases in `rows`, the cursor and key
      handlers, the Feed tab and `FeedView`, the 1–5 digit keys, the volume
      block and its `applyVolume()` calls, `↑`/`↓` in the Player, `case "m"`,
-     and the key legends
+     the persistent-player block (`startDetached`, `attachToRunningPlayer`,
+     `playerGone`, `onDestruction`), `force-media-title` in `sendLoad`,
+     `playing` first in `onOpened`, and the key legends
    - `PlayerView.qml`: the `VolumeRow`
    - `EpisodeRow.qml`: the `DownloadButton` and the download label
    - `SettingsView.qml`: the `DownloadSettings` block
