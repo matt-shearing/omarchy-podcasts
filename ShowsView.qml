@@ -679,6 +679,32 @@ Column {
           wrapMode: Text.WordWrap
         }
 
+        // Auto-download (fork addition): off unless the show auto-queues.
+        Item {
+          width: parent.width
+          height: Style.space(26)
+
+          Text {
+            textFormat: Text.PlainText
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            text: "Download new episodes automatically"
+            color: view.panel.fg
+            font.family: view.panel.fontName
+            font.pixelSize: Style.font.caption
+          }
+
+          ToggleSwitch {
+            checked: view.panel.offline.autoFor(view.panel.detailShow)
+            foreground: view.panel.fg
+            accent: Color.accent
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            onToggled: view.panel.offline.setAuto(view.panel.detailShow,
+              !view.panel.offline.autoFor(view.panel.detailShow))
+          }
+        }
+
         Text {
           textFormat: Text.PlainText
           visible: !!(view.panel.detailShow && view.panel.detailShow.lastError)

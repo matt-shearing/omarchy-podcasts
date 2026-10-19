@@ -151,6 +151,9 @@ Panel {
 
   signal libraryChanged()
 
+  // Offline downloads (fork addition) — see Downloads.qml.
+  readonly property Downloads offline: Downloads { panel: root }
+
   // -------------------------------------------------------------- helpers
 
   function currentShow() {
@@ -295,6 +298,7 @@ Panel {
         var reply = Model.parseJson(text)
         if (reply.ok) root.raiseNotifications(reply.notify || [])
         root.reloadLibrary()
+        root.offline.kick()
       }
     }
   }
@@ -748,8 +752,9 @@ Panel {
     playing = true
     playerError = ""
 
-    if (mpvSock.connected) sendLoad(episode.url)
-    else pendingUrl = episode.url
+    var source = offline.sourceFor(episode)
+    if (mpvSock.connected) sendLoad(source)
+    else pendingUrl = source
 
     if (episode.chapters) {
       if (!chaptersProc.running) {
@@ -873,6 +878,7 @@ Panel {
       loadPending = false
       if (message.reason === "eof") finishEpisode()
       else if (message.reason === "error") {
+        if (offline.streamInstead(currentEpisode)) return
         playing = false
         playerError = "could not play that episode"
       }
@@ -1058,6 +1064,10 @@ Panel {
     case "u":
       if (view === "shows" && detailShowId) unarchiveEpisode(row)
       break
+    case "d":
+      if (row && (view === "inbox" || view === "queue" || (view === "shows" && detailShowId)))
+        offline.toggle(row)
+      break
     }
   }
 
@@ -1090,6 +1100,12 @@ Panel {
 
   function setDefaultSpeed(value) {
     persistSettings({ defaultSpeed: Math.max(0.8, Math.min(3.0, Math.round(value * 10) / 10)) })
+  }
+
+  function setDownloadSetting(spec, value) {
+    var values = {}
+    values[spec.key] = Math.max(spec.min, Math.min(spec.max, Math.round(value)))
+    persistSettings(values)
   }
 
   function setPollMinutes(value) {
@@ -1452,13 +1468,13 @@ Panel {
             topPadding: Style.space(4)
             text: {
               if (root.view === "inbox")
-                return "enter queue · space play · a archive · A archive all · x archive · 1-4 views"
+                return "enter queue · space play · a archive · A archive all · x archive · d download · 1-4 views"
               if (root.view === "queue")
-                return "enter play · shift+↑↓ reorder · x remove · 1-4 views"
+                return "enter play · shift+↑↓ reorder · x remove · d download · 1-4 views"
               if (root.view === "player")
                 return "space play/pause · ←/→ skip · -/+ speed · b voice boost · 1-4 views"
               if (root.detailShowId)
-                return "enter queue · space play · a archive · ← back · 1-4 views"
+                return "enter queue · space play · a archive · d download · ← back · 1-4 views"
               return root.cursorIsDirectory
                 ? "enter subscribe · x dismiss results · / search again · 1-4 views"
                 : "/ search · enter open · x unsubscribe · 1-4 views"

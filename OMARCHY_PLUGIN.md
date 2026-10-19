@@ -43,6 +43,26 @@ not settings**: they live under `~/.local/share/omarchy-podcasts/`
 0600 under a 0700 directory and guarded by an `flock` so one writer touches
 them at a time.
 
+## Offline downloads (fork addition)
+
+Kept out of upstream's files as far as possible so upstream changes merge
+cleanly. `scripts/downloads.py` holds the state, the files and the worker;
+`podcasts.py` calls it from its argument parser and from `cmd_refresh`.
+`Downloads.qml` owns the processes and the status in the panel,
+`DownloadButton.qml` is the row control, and `DownloadSettings.qml` is the
+settings block. State is a new file, `downloads.json`, because
+`load_library()` drops any key it does not know.
+
+- One worker (`download-run`) at a time, held by a lock file, so the
+  parallel limit holds across shells. It exits when nothing is queued.
+- Downloads go to `<episode>.part` and are renamed when complete. A resume
+  sends `If-Range` with the server's ETag, so a file that changed is fetched
+  again in full rather than joined to the old partial.
+- HTTPS only, ten redirects for tracking prefixes, a 1 GB cap by default, a
+  stall timeout and a three-hour ceiling, the same loopback and link-local
+  checks as feeds, and a loose content-type check (`audio/*`, `video/*`,
+  octet-stream). Failures are never retried on their own.
+
 ## Layout
 
 | File | Role |

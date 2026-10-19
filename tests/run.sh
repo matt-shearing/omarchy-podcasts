@@ -1255,6 +1255,9 @@ for (const [label, argv] of commands) console.log(label + "\t" + JSON.stringify(
 ' "$PLUGIN/Model.js" "$PLUGIN/scripts" "$SOME_SHOW" "$WORK/wire.opml")
 fi
 
+# Offline downloads (fork addition) live in their own file.
+source "$HERE/downloads.sh"
+
 # -------------------------------------------------------------------- summary
 
 printf '\n'

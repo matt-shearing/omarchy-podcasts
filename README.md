@@ -31,6 +31,9 @@ pick up where you left off.
   the box. Shows you already have sort to the top; the rest appear underneath,
   five at a time. Paste an RSS URL for anything the directory does not list —
   including private Patreon and Supercast feeds.
+- **Offline downloads.** Press `d` on any episode to download it; it then
+  plays from disk with no connection. Shows can download new episodes on
+  their own, and played downloads are deleted after a week. *(This fork.)*
 - **OPML in and out**, through the desktop file chooser.
 - **Polite to your machine.** Feeds are polled on a jittered schedule with
   conditional GET, so an unchanged feed costs a couple of hundred bytes. A feed
@@ -81,12 +84,18 @@ The four views are `1`–`4`, or click the tabs.
 | `←` `→` | — | — | back 15s / forward 30s | back to the grid |
 | `-` `+` | — | — | slower / faster | — |
 | `b` | voice boost | voice boost | voice boost | voice boost |
+| `d` | download / delete download | download / delete download | — | download / delete download (in a show) |
 | `r` | check feeds now | | | |
 | `/` | | | | focus search |
 | `Esc` | close | close | close | close |
 
 Right-click any episode row for the secondary action (play now in the inbox,
 remove from the queue).
+
+The download button on each row does what `d` does. Its icon shows where the
+episode stands: not downloaded, waiting, downloading (with a percentage
+beside the date), downloaded, or failed. Click a failed download to retry it
+and hover it to see why it failed.
 
 ## Settings
 
@@ -99,6 +108,14 @@ The ⚙ button, or `omarchy bar set`:
 | `voiceBoost` | `false` | Level quiet talk against loud music and ads |
 | `podcastIndexKey` | *(empty)* | Optional — search Podcast Index instead of iTunes |
 | `podcastIndexSecret` | *(empty)* | Paired with the key above |
+| `downloadParallel` | `2` | How many episodes download at once (1–6) |
+| `downloadMaxMB` | `1024` | Episodes larger than this many MB are refused |
+| `downloadCleanupDays` | `7` | Delete a played download this many days after you finish it; `0` keeps it |
+
+Each show also has a **Download new episodes automatically** switch on its
+page in Shows. It is off by default, except for shows in *Auto-queue* mode.
+Settings also shows the disk space your downloads use and has a **Delete all
+downloads** button.
 
 ```sh
 omarchy bar set bottelet.podcasts pollMinutes 60
@@ -153,7 +170,7 @@ Run the offline test suite yourself:
 tests/run.sh
 ```
 
-309 checks, no network — a stub curl serves fixtures and simulates redirects,
+309 checks, plus 64 for offline downloads, no network — a stub curl serves fixtures and simulates redirects,
 validators, and transport failures.
 
 ## Remove
@@ -184,8 +201,17 @@ Audio only. Even when a feed's enclosure is a video file it plays with
 `--no-video` — this is a bar widget, not a media player.
 
 **Where are my downloads?**
-There are none yet; episodes stream. Offline downloads are planned alongside
-gpodder/AntennaPod sync.
+In `~/.local/share/omarchy-podcasts/downloads/<show-id>/<episode-id>.mp3`
+(or `.m4a`, `.mp4` and so on, from what the server sent). A download in
+progress is a `.part` file beside it. When an episode has a finished
+download, the player plays that file instead of streaming. Unsubscribing
+from a show deletes its downloads.
+
+**What happens to a download that is interrupted?**
+The partial file is kept. The next time the plugin starts, or when you
+retry, it continues from where it stopped. If the server now sends a
+different file, which happens with hosts that insert ads per download, it
+starts again from the beginning instead of joining two different files.
 
 **Can I sync with my phone?**
 Not yet. gpodder.net / oPodSync sync — which AntennaPod on Android speaks

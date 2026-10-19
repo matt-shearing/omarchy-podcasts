@@ -8,9 +8,11 @@ routes file. Speaks exactly the curl surface podcasts.py uses: -o, -D, -w,
 -H, --max-filesize, and curl's own exit codes.
 """
 
+import fcntl
 import json
 import os
 import sys
+import time
 
 FIXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures")
 ROUTES = os.environ.get("FAKE_CURL_ROUTES", "")
@@ -33,6 +35,7 @@ def main(argv):
     headers = {}
     url = ""
     max_filesize = 0
+    resume = False
 
     index = 0
     while index < len(argv):
@@ -53,8 +56,12 @@ def main(argv):
         elif arg == "--max-filesize":
             index += 1
             max_filesize = int(argv[index])
+        elif arg == "-C":
+            index += 1
+            resume = True
         elif arg in ("-A", "--max-time", "--connect-timeout", "--max-redirs",
-                     "--retry", "--proto", "--proto-redir", "-X", "--data-binary"):
+                     "--retry", "--proto", "--proto-redir", "-X", "--data-binary",
+                     "--speed-limit", "--speed-time"):
             index += 1
         elif arg in ("-sS", "-L"):
             pass
@@ -63,6 +70,9 @@ def main(argv):
         index += 1
 
     route = routes().get(url, {})
+    if "audio" in route:
+        return serve_audio(route, url, dest, header_dump, write_format,
+                           headers, max_filesize, resume)
     status = int(route.get("status", 200))
     fixture = route.get("fixture", "")
     exit_code = int(route.get("exit", 0))
@@ -134,6 +144,106 @@ def main(argv):
                          .replace("%{http_code}", str(status))
                          .replace("%{remote_ip}", route_ip)
                          .replace("%{proxy_used}", proxy_used)
+                         .replace("%{url_effective}", final_url))
+    return 0
+
+
+# ------------------------------------------------------ episode audio (fork)
+#
+# A route with "audio": N serves an N-byte episode body. Options:
+#   content_type   the Content-Type to answer with (default audio/mpeg)
+#   etag           validator; a resume whose If-Range differs gets a 200
+#   ranges         honour -C (resume) with a 206 (default true)
+#   cut_at         write this many bytes, then fail like a dropped link (18)
+#   sleep          seconds to hold the transfer open
+#   location       one redirect hop first, as the feed routes do
+#   remote_ip      the address curl reports having connected to
+# Every transfer is counted in $FAKE_CURL_ROUTES.active so the suite can see
+# how many ran at once.
+
+def audio_body(size, version=""):
+    seed = (version or "v1").encode("utf-8")
+    block = bytes((i * 7 + sum(seed)) % 251 for i in range(4096))
+    return (block * (size // len(block) + 1))[:size]
+
+
+def track_active(delta):
+    path = ROUTES + ".active"
+    with open(path, "a+") as handle:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        handle.seek(0)
+        raw = handle.read().split()
+        now = int(raw[0]) if raw else 0
+        peak = int(raw[1]) if len(raw) > 1 else 0
+        now += delta
+        peak = max(peak, now)
+        handle.seek(0)
+        handle.truncate()
+        handle.write("%d %d" % (now, peak))
+
+
+def serve_audio(route, url, dest, header_dump, write_format, headers,
+                max_filesize, resume):
+    size = int(route["audio"])
+    etag = route.get("etag", "")
+    body = audio_body(size, etag)
+    ctype = route.get("content_type", "audio/mpeg")
+    blocks = []
+    final_url = url
+    if route.get("location"):
+        blocks.append("HTTP/1.1 302 Found\r\nLocation: %s\r\n" % route["location"])
+        final_url = route["location"]
+
+    offset = 0
+    if resume and dest and os.path.exists(dest):
+        offset = os.path.getsize(dest)
+    status = 200
+    if offset:
+        same = not etag or headers.get("if-range", "") == etag
+        if route.get("ranges", True) and same:
+            status = 206
+        else:
+            # The server sent the whole file; curl refuses to append it.
+            sys.stderr.write("curl: (33) HTTP server doesn't seem to support byte ranges. Cannot resume.\n")
+            return 33
+
+    part = body[offset:]
+    if max_filesize and len(part) > max_filesize:
+        sys.stderr.write("curl: (63) Maximum file size exceeded\n")
+        return 63
+
+    tail = "HTTP/1.1 %d OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n" % (
+        status, ctype, len(part))
+    if status == 206:
+        tail += "Content-Range: bytes %d-%d/%d\r\n" % (offset, size - 1, size)
+    if etag:
+        tail += "ETag: %s\r\n" % etag
+    blocks.append(tail)
+    if header_dump:
+        with open(header_dump, "w", encoding="utf-8") as handle:
+            handle.write("\r\n".join(blocks) + "\r\n")
+
+    track_active(1)
+    try:
+        if route.get("sleep"):
+            time.sleep(float(route["sleep"]))
+        cut = route.get("cut_at")
+        chunk = part if cut is None else part[:max(0, int(cut) - offset)]
+        if dest:
+            with open(dest, "ab" if offset else "wb") as handle:
+                handle.write(chunk)
+    finally:
+        track_active(-1)
+    if cut is not None:
+        sys.stderr.write("curl: (18) transfer closed with outstanding read data remaining\n")
+        return 18
+
+    if write_format:
+        sys.stdout.write(write_format
+                         .replace("%{http_code}", str(status))
+                         .replace("%{remote_ip}", route.get("remote_ip", "203.0.113.10"))
+                         .replace("%{proxy_used}", "0")
+                         .replace("%{content_type}", ctype)
                          .replace("%{url_effective}", final_url))
     return 0
 

@@ -1741,6 +1741,7 @@ def cmd_refresh(args):
             results.append(result)
             if result["status"] == "ok" and result["newIds"]:
                 notify += apply_new(show, result["newIds"], lib)
+                offline().note_new(show, result["newIds"])
         prune_triage(shows, lib)
         save_shows(shows)
         save_library(lib)
@@ -2185,7 +2186,20 @@ def build_parser():
     p.add_argument("--icon", default="")
     p.set_defaults(run=cmd_notify)
 
+    offline().register(sub)
     return parser
+
+
+def offline():
+    """Offline downloads (fork addition) live in scripts/downloads.py so this
+    file stays close to upstream; the parser and cmd_refresh are its only
+    hooks."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import downloads
+    downloads.bind(sys.modules[__name__])
+    return downloads
 
 
 def main():
