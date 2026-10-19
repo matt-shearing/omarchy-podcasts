@@ -63,6 +63,15 @@ settings block. State is a new file, `downloads.json`, because
   checks as feeds, and a loose content-type check (`audio/*`, `video/*`,
   octet-stream). Failures are never retried on their own.
 
+## Feed view (fork addition)
+
+`scripts/feed.py` adds a read-only `feed --days N` command: every episode
+from every show (ignored ones included) published in the window, newest
+first, each marked `queued` if it is in the queue. `Feed.qml` loads it on
+start, on every library reload and when `feedDays` changes; `FeedView.qml`
+renders it. The tab is second, so the digit keys are now 1 Inbox, 2 Feed,
+3 Queue, 4 Player, 5 Shows.
+
 ## Layout
 
 | File | Role |

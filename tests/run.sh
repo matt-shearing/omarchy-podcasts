@@ -1257,6 +1257,7 @@ fi
 
 # Offline downloads (fork addition) live in their own file.
 source "$HERE/downloads.sh"
+source "$HERE/feed.sh"
 
 # -------------------------------------------------------------------- summary
 

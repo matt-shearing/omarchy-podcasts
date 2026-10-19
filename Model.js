@@ -531,7 +531,14 @@ function downloadTooltip(state, item) {
   return "Download for offline (d)"
 }
 
+// ------------------------------------------------------- feed view (fork)
+
+function feedCommand(scriptDir, days) {
+  return cmd(scriptDir, "feed", ["--days", String(days)], [])
+}
+
 if (typeof module !== "undefined") {
+  module.exports.feedCommand = feedCommand
   module.exports.downloadStatusCommand = downloadStatusCommand
   module.exports.downloadAddCommand = downloadAddCommand
   module.exports.downloadRemoveCommand = downloadRemoveCommand

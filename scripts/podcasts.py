@@ -2187,19 +2187,24 @@ def build_parser():
     p.set_defaults(run=cmd_notify)
 
     offline().register(sub)
+    fork_module("feed").register(sub)
     return parser
 
 
-def offline():
-    """Offline downloads (fork addition) live in scripts/downloads.py so this
-    file stays close to upstream; the parser and cmd_refresh are its only
-    hooks."""
+def fork_module(name):
+    """This fork's additions (offline downloads, the Feed view) live in their
+    own modules beside this one so this file stays close to upstream; the
+    parser and cmd_refresh are their only hooks."""
     here = os.path.dirname(os.path.abspath(__file__))
     if here not in sys.path:
         sys.path.insert(0, here)
-    import downloads
-    downloads.bind(sys.modules[__name__])
-    return downloads
+    module = __import__(name)
+    module.bind(sys.modules[__name__])
+    return module
+
+
+def offline():
+    return fork_module("downloads")
 
 
 def main():

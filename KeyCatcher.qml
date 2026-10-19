@@ -6,7 +6,7 @@ import QtQuick
 //   * modifier-aware movement — Shift+Up/Down reorders the queue rather than
 //     moving the cursor, and the shared catcher swallows arrows before any
 //     ancestor can see the modifier;
-//   * digitKey — 1..4 jump straight to a view.
+//   * digitKey — 1..5 jump straight to a view.
 //
 // Signal names and default bindings are kept identical to the shell's so the
 // muscle memory carries over from the sibling plugins.

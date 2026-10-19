@@ -2,7 +2,8 @@
 
 This fork is `matt-shearing/omarchy-podcasts`. It adds offline downloads to
 [Bottelet/omarchy-podcasts](https://github.com/Bottelet/omarchy-podcasts).
-Most of the addition lives in new files (`scripts/downloads.py`,
+It also adds a Feed tab. Most of the additions live in new files
+(`scripts/downloads.py`, `scripts/feed.py`, `Feed.qml`, `FeedView.qml`,
 `Downloads.qml`, `DownloadButton.qml`, `DownloadSettings.qml`,
 `tests/downloads.sh`, `UPSTREAM-SYNC.md`). Upstream's files carry only short
 hooks, each marked "fork addition", so most upstream changes merge without
@@ -43,17 +44,21 @@ git remote add upstream https://github.com/Bottelet/omarchy-podcasts.git
 3. If there are conflicts, they will be at the hooks. Keep upstream's change
    and put the fork's line back beside it. The hooks are:
    - `scripts/podcasts.py`: `offline().note_new(...)` in `cmd_refresh`,
-     `offline().register(sub)` and the `offline()` function in `build_parser`
+     the two `register(sub)` lines and the `fork_module()` / `offline()`
+     functions after `build_parser`
    - `Panel.qml`: the `offline` property, the source line in `playEpisode`,
      `streamInstead` in the `end-file` error branch, `offline.kick()` after a
-     refresh, `case "d"` in `handleTextKey`, `setDownloadSetting`, and the
-     key legends
+     refresh, `case "d"` in `handleTextKey`, `setDownloadSetting`, the
+     `feed` property, the `"feed"` cases in `rows`, the cursor and key
+     handlers, the Feed tab and `FeedView`, the 1–5 digit keys, and the key
+     legends
    - `EpisodeRow.qml`: the `DownloadButton` and the download label
    - `SettingsView.qml`: the `DownloadSettings` block
    - `ShowsView.qml`: the auto-download switch
-   - `manifest.json`: three `download*` defaults and schema entries
+   - `manifest.json`: the `download*` and `feedDays` defaults and schema
+     entries
    - `Model.js`: the section at the end of the file
-   - `tests/run.sh`: `source "$HERE/downloads.sh"`
+   - `tests/run.sh`: the `source` lines for `downloads.sh` and `feed.sh`
    - `tests/fake-curl.py`: `-C`, `--speed-*` and `serve_audio`
    - `README.md` / `OMARCHY_PLUGIN.md`: the download sections
 
