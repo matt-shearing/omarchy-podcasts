@@ -180,6 +180,14 @@ Item {
     onTriggered: offline.status()
   }
 
+  // Every library reload — after any action, every feed check — re-reads
+  // download state too, so a file finished by another worker (a second
+  // shell, the command line) is played locally without waiting.
+  Connections {
+    target: offline.panel
+    function onLibraryChanged() { offline.status() }
+  }
+
   Component.onCompleted: {
     status()
     // Startup: resume partials, apply retention. Exits at once if idle.

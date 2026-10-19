@@ -530,3 +530,16 @@ function downloadTooltip(state, item) {
   if (state === "failed") return "Retry download (d)" + (item && item.error ? " — " + item.error : "")
   return "Download for offline (d)"
 }
+
+if (typeof module !== "undefined") {
+  module.exports.downloadStatusCommand = downloadStatusCommand
+  module.exports.downloadAddCommand = downloadAddCommand
+  module.exports.downloadRemoveCommand = downloadRemoveCommand
+  module.exports.downloadClearCommand = downloadClearCommand
+  module.exports.downloadShowCommand = downloadShowCommand
+  module.exports.downloadRunCommand = downloadRunCommand
+  module.exports.downloadState = downloadState
+  module.exports.playbackSource = playbackSource
+  module.exports.bytesLabel = bytesLabel
+  module.exports.downloadLabel = downloadLabel
+}
