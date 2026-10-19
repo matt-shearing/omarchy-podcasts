@@ -2,8 +2,9 @@
 
 This fork is `matt-shearing/omarchy-podcasts`. It adds offline downloads to
 [Bottelet/omarchy-podcasts](https://github.com/Bottelet/omarchy-podcasts).
-It also adds a Feed tab. Most of the additions live in new files
+It also adds a Feed tab and a volume control. Most of the additions live in new files
 (`scripts/downloads.py`, `scripts/feed.py`, `Feed.qml`, `FeedView.qml`,
+`VolumeRow.qml`,
 `Downloads.qml`, `DownloadButton.qml`, `DownloadSettings.qml`,
 `tests/downloads.sh`, `UPSTREAM-SYNC.md`). Upstream's files carry only short
 hooks, each marked "fork addition", so most upstream changes merge without
@@ -50,12 +51,14 @@ git remote add upstream https://github.com/Bottelet/omarchy-podcasts.git
      `streamInstead` in the `end-file` error branch, `offline.kick()` after a
      refresh, `case "d"` in `handleTextKey`, `setDownloadSetting`, the
      `feed` property, the `"feed"` cases in `rows`, the cursor and key
-     handlers, the Feed tab and `FeedView`, the 1–5 digit keys, and the key
-     legends
+     handlers, the Feed tab and `FeedView`, the 1–5 digit keys, the volume
+     block and its `applyVolume()` calls, `↑`/`↓` in the Player, `case "m"`,
+     and the key legends
+   - `PlayerView.qml`: the `VolumeRow`
    - `EpisodeRow.qml`: the `DownloadButton` and the download label
    - `SettingsView.qml`: the `DownloadSettings` block
    - `ShowsView.qml`: the auto-download switch
-   - `manifest.json`: the `download*` and `feedDays` defaults and schema
+   - `manifest.json`: the `download*`, `feedDays` and `volume` defaults and schema
      entries
    - `Model.js`: the section at the end of the file
    - `tests/run.sh`: the `source` lines for `downloads.sh` and `feed.sh`

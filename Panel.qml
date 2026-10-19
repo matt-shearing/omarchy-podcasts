@@ -157,6 +157,37 @@ Panel {
   // The Feed view's data (fork addition) — see Feed.qml.
   readonly property Feed feed: Feed { panel: root }
 
+  // Volume (fork addition) — see VolumeRow.qml. 0–130, as mpv allows; above
+  // 100 is mpv's own software gain. Mute is per session, not saved.
+  readonly property int savedVolume: {
+    var value = parseInt(setting("volume", 100), 10)
+    return isNaN(value) ? 100 : Math.max(0, Math.min(130, value))
+  }
+  property int liveVolume: savedVolume
+  property bool muted: false
+  onSavedVolumeChanged: { liveVolume = savedVolume; applyVolume() }
+
+  function applyVolume() {
+    send(Model.ipc(["set_property", "volume", liveVolume]))
+    send(Model.ipc(["set_property", "mute", muted]))
+  }
+
+  function setVolume(value, persist) {
+    liveVolume = Math.max(0, Math.min(130, Math.round(value)))
+    if (muted && liveVolume > 0) muted = false
+    applyVolume()
+    if (persist && liveVolume !== savedVolume) persistSettings({ volume: liveVolume })
+  }
+
+  function stepVolume(delta) {
+    setVolume(Math.round((liveVolume + delta) / 5) * 5, true)
+  }
+
+  function toggleMute() {
+    muted = !muted
+    applyVolume()
+  }
+
   // -------------------------------------------------------------- helpers
 
   function currentShow() {
@@ -716,6 +747,7 @@ Panel {
     send(Model.observe("speed", 4))
     send(Model.observe("eof-reached", 5))
     applyVoiceBoost()
+    applyVolume()
     if (pendingUrl !== "") {
       var url = pendingUrl
       pendingUrl = ""
@@ -872,6 +904,7 @@ Panel {
       var show = currentShow()
       setSpeed(Model.speedFor(show, root.defaultSpeed))
       applyVoiceBoost()
+      applyVolume()
       if (resumeAt > 1) send(Model.ipc(["seek", resumeAt, "absolute"]))
       send(Model.ipc(["set_property", "pause", false]))
       return
@@ -1067,6 +1100,9 @@ Panel {
     case "u":
       if (view === "shows" && detailShowId) unarchiveEpisode(row)
       break
+    case "m":
+      toggleMute()
+      break
     case "d":
       if (row && (view === "inbox" || view === "feed" || view === "queue" || (view === "shows" && detailShowId)))
         offline.toggle(row)
@@ -1211,7 +1247,8 @@ Panel {
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onMoveRequested: function(dx, dy) {
-        if (dy !== 0) root.moveCursor(dy)
+        if (dy !== 0 && root.view === "player") root.stepVolume(dy < 0 ? 5 : -5)
+        else if (dy !== 0) root.moveCursor(dy)
         else if (dx !== 0 && root.view === "player") root.seekBy(dx > 0 ? 30 : -15)
         else if (dx < 0 && root.view === "shows" && root.detailShowId) root.detailShowId = ""
       }
@@ -1485,7 +1522,7 @@ Panel {
               if (root.view === "queue")
                 return "enter play · shift+↑↓ reorder · x remove · d download · 1-5 views"
               if (root.view === "player")
-                return "space play/pause · ←/→ skip · -/+ speed · b voice boost · 1-5 views"
+                return "space play/pause · ←/→ skip · ↑/↓ volume · m mute · -/+ speed · b voice boost · 1-5 views"
               if (root.detailShowId)
                 return "enter queue · space play · a archive · d download · ← back · 1-5 views"
               return root.cursorIsDirectory

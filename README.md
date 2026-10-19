@@ -35,6 +35,8 @@ pick up where you left off.
   every show over the last 14 days, newest first. Play, queue or download
   straight from it; unlike the inbox, nothing leaves it when you act on it.
   `−` and `+` change how far back it looks. *(This fork.)*
+- **Volume.** A slider in the Player, `↑`/`↓` to step it, `m` to mute.
+  It goes up to 130% for quiet shows and is remembered. *(This fork.)*
 - **Offline downloads.** Press `d` on any episode to download it; it then
   plays from disk with no connection. Shows can download new episodes on
   their own, and played downloads are deleted after a week. *(This fork.)*
@@ -90,6 +92,8 @@ and `a` or `x` archives.
 | `←` `→` | — | — | back 15s / forward 30s | back to the grid |
 | `-` `+` | — | — | slower / faster | — |
 | `b` | voice boost | voice boost | voice boost | voice boost |
+| `↑` `↓` in Player | — | — | volume up / down | — |
+| `m` | mute | mute | mute | mute |
 | `d` | download / delete download | download / delete download | — | download / delete download (in a show) |
 | `r` | check feeds now | | | |
 | `/` | | | | focus search |
@@ -116,6 +120,7 @@ The ⚙ button, or `omarchy bar set`:
 | `podcastIndexSecret` | *(empty)* | Paired with the key above |
 | `downloadParallel` | `2` | How many episodes download at once (1–6) |
 | `downloadMaxMB` | `1024` | Episodes larger than this many MB are refused |
+| `volume` | `100` | Player volume, 0–130 (above 100 is mpv's own boost) |
 | `feedDays` | `14` | How many days back the Feed tab looks (also its `−` / `+` buttons) |
 | `downloadCleanupDays` | `7` | Delete a played download this many days after you finish it; `0` keeps it |
 
