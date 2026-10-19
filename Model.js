@@ -443,3 +443,90 @@ if (typeof module !== "undefined") {
     chapterAt: chapterAt
   }
 }
+
+// ------------------------------------------------- offline downloads (fork)
+//
+// Everything below is this fork's addition; see scripts/downloads.py. The
+// helper owns the files — QML only ever learns a finished file's path from
+// download-status, and only a path the helper built from our own ids.
+
+function downloadStatusCommand(scriptDir) {
+  return cmd(scriptDir, "download-status", [], [])
+}
+
+function downloadAddCommand(scriptDir, episodeId) {
+  return cmd(scriptDir, "download-add", [], [episodeId])
+}
+
+function downloadRemoveCommand(scriptDir, episodeId) {
+  return cmd(scriptDir, "download-remove", [], [episodeId])
+}
+
+function downloadClearCommand(scriptDir) {
+  return cmd(scriptDir, "download-clear", [], [])
+}
+
+function downloadShowCommand(scriptDir, showId, value) {
+  return cmd(scriptDir, "download-show", [], [showId, value])
+}
+
+function downloadRunCommand(scriptDir, parallel, maxMb, cleanupDays) {
+  return cmd(scriptDir, "download-run", [
+    "--parallel", String(parallel),
+    "--max-mb", String(maxMb),
+    "--cleanup-days", String(cleanupDays)
+  ], [])
+}
+
+// One of: none, queued, downloading, done, failed.
+function downloadState(items, episodeId) {
+  var item = items ? items[episodeId] : null
+  if (!item || item.state === "missing") return "none"
+  return item.state
+}
+
+// What mpv should load: the finished local file when there is one, the
+// enclosure URL otherwise.
+function playbackSource(items, episode) {
+  if (!episode) return ""
+  var item = items ? items[episode.id] : null
+  if (item && item.state === "done" && item.path) return item.path
+  return episode.url || ""
+}
+
+function bytesLabel(bytes) {
+  var value = Math.max(0, bytes || 0)
+  if (value >= 1024 * 1024 * 1024) return (value / (1024 * 1024 * 1024)).toFixed(1) + " GB"
+  if (value >= 1024 * 1024) return Math.round(value / (1024 * 1024)) + " MB"
+  if (value >= 1024) return Math.round(value / 1024) + " KB"
+  return value + " B"
+}
+
+function downloadLabel(item) {
+  if (!item) return ""
+  if (item.state === "queued") return "waiting to download"
+  if (item.state === "downloading") {
+    return item.total > 0
+      ? "downloading " + Math.round((item.progress || 0) * 100) + "%"
+      : "downloading " + bytesLabel(item.bytes)
+  }
+  if (item.state === "done") return "downloaded"
+  if (item.state === "failed") return "download failed"
+  return ""
+}
+
+// Nerd Font glyphs: download, spinner-ish clock, check, warning.
+function downloadIcon(state) {
+  if (state === "queued") return ""
+  if (state === "downloading") return ""
+  if (state === "done") return ""
+  if (state === "failed") return ""
+  return ""
+}
+
+function downloadTooltip(state, item) {
+  if (state === "queued" || state === "downloading") return "Cancel download (d)"
+  if (state === "done") return "Delete downloaded copy (d)"
+  if (state === "failed") return "Retry download (d)" + (item && item.error ? " — " + item.error : "")
+  return "Download for offline (d)"
+}

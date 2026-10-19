@@ -95,7 +95,7 @@ Item {
     id: content
     anchors.left: art.visible ? art.right : (ordinalText.visible ? ordinalText.right : parent.left)
     anchors.leftMargin: Style.space(8)
-    anchors.right: trailing.left
+    anchors.right: download.left
     anchors.rightMargin: Style.space(8)
     anchors.top: parent.top
     anchors.topMargin: Style.space(6)
@@ -167,6 +167,15 @@ Item {
       }
       Text {
         textFormat: Text.PlainText
+        visible: text !== ""
+        text: Model.downloadLabel(row.panel.offline.itemOf(row.episode.id))
+        color: row.panel.offline.stateOf(row.episode.id) === "failed" ? Color.urgent : Color.accent
+        font.family: panel.fontName
+        font.pixelSize: Style.font.caption
+        anchors.verticalCenter: parent.verticalCenter
+      }
+      Text {
+        textFormat: Text.PlainText
         visible: row.episode.state === "played"
         text: "played"
         color: row.dim
@@ -206,6 +215,17 @@ Item {
     anchors.rightMargin: Style.space(4)
     anchors.verticalCenter: parent.verticalCenter
     onClicked: row.trailingClicked()
+  }
+
+  // Above rowArea, which otherwise covers it.
+  DownloadButton {
+    id: download
+    z: 1
+    panel: row.panel
+    episode: row.episode
+    anchors.right: trailing.visible ? trailing.left : parent.right
+    anchors.rightMargin: Style.space(4)
+    anchors.verticalCenter: parent.verticalCenter
   }
 
   MouseArea {

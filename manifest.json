@@ -25,7 +25,10 @@
     "defaults": {
       "pollMinutes": 30,
       "defaultSpeed": 1.0,
-      "voiceBoost": false
+      "voiceBoost": false,
+      "downloadParallel": 2,
+      "downloadMaxMB": 1024,
+      "downloadCleanupDays": 7
     },
     "schema": [
       {
@@ -68,6 +71,36 @@
         "label": "Podcast Index API secret",
         "defaultValue": "",
         "description": "Optional. Paired with the API key above."
+      },
+      {
+        "key": "downloadParallel",
+        "type": "integer",
+        "label": "Downloads at once",
+        "min": 1,
+        "max": 6,
+        "step": 1,
+        "defaultValue": 2,
+        "description": "How many episodes download in parallel."
+      },
+      {
+        "key": "downloadMaxMB",
+        "type": "integer",
+        "label": "Largest episode to download (MB)",
+        "min": 256,
+        "max": 8192,
+        "step": 256,
+        "defaultValue": 1024,
+        "description": "Episodes bigger than this are refused. Video episodes can be large."
+      },
+      {
+        "key": "downloadCleanupDays",
+        "type": "integer",
+        "label": "Delete played downloads after (days)",
+        "min": 0,
+        "max": 365,
+        "step": 1,
+        "defaultValue": 7,
+        "description": "A downloaded episode you have finished is deleted this many days later. 0 keeps it."
       }
     ]
   }

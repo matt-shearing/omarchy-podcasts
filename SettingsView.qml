@@ -106,6 +106,11 @@ Column {
     }
   }
 
+  DownloadSettings {
+    width: parent.width
+    panel: view.panel
+  }
+
   PanelSectionHeader {
     text: "FEEDS"
     foreground: view.panel.fg
