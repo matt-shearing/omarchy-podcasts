@@ -660,6 +660,10 @@ Panel {
 
   // ----------------------------------------------------------------- mpv
 
+  // Started with startDetached() (fork addition), so mpv outlives a shell
+  // restart and the next panel reattaches to it over the socket; see
+  // attachToRunningPlayer(). onExited therefore never fires for it — a
+  // player that goes away is noticed by the socket dropping instead.
   Process {
     id: mpvProc
     command: Model.mpvCommand(root.socketPath)
@@ -678,17 +682,20 @@ Panel {
 
     onConnectionStateChanged: {
       if (connected) {
+        root.attaching = false
         root.socketReady = true
         root.playerError = ""
         socketRetry.stop()
         root.primePlayer()
       } else {
+        if (root.socketReady) root.playerGone()
         root.socketReady = false
       }
     }
 
     onError: function(err) {
       // mpv creates the socket a beat after it starts; keep knocking.
+      if (root.attaching && ++root.attachTries > 6) { root.attaching = false; root.playerStarted = false; socketRetry.stop(); return }
       if (root.playerStarted && !socketRetry.running) socketRetry.start()
     }
 
@@ -727,7 +734,11 @@ Panel {
       return false
     }
     playerStarted = true
-    if (!mpvProc.running) mpvProc.running = true
+    attaching = false
+    if (!socketReady && Date.now() - launchedAt > 5000) {
+      launchedAt = Date.now()
+      mpvProc.startDetached()
+    }
     if (!mpvSock.connected && !socketRetry.running) socketRetry.restart()
     return true
   }
@@ -759,6 +770,9 @@ Panel {
 
   function sendLoad(url) {
     loadPending = true
+    // What MPRIS (the bar's media widget, media keys) shows as the title;
+    // otherwise it is the file name. Fork addition.
+    send(Model.ipc(["set_property", "force-media-title", Model.mediaTitle(currentEpisode)]))
     send(Model.ipc(["loadfile", url, "replace"]))
   }
 
@@ -824,7 +838,7 @@ Panel {
       playNextFromQueue()
       return
     }
-    if (!mpvProc.running) {
+    if (!socketReady) {
       // Resuming after a shell restart: reload the episode where we left it.
       playEpisode(currentEpisode, { keepView: true })
       return
@@ -973,10 +987,36 @@ Panel {
   Component.onCompleted: {
     reloadLibrary()
     Qt.callLater(refreshAll)
+    attachToRunningPlayer()
   }
 
+  // A paused or idle player is not worth keeping past this panel; one that
+  // is playing is left running, so a shell restart does not cut the audio.
   Component.onDestruction: {
-    if (mpvProc.running) mpvProc.running = false
+    if (socketReady && !playing) send(Model.ipc(["quit"]))
+  }
+
+  // ------------------------------------------- persistent player (fork)
+
+  property bool attaching: false
+  property int attachTries: 0
+  property real launchedAt: 0
+
+  // An mpv left playing by the previous shell: connect to it instead of
+  // starting another. Gives up quietly after a couple of seconds.
+  function attachToRunningPlayer() {
+    if (!playerAvailable) return
+    attaching = true
+    attachTries = 0
+    playerStarted = true
+    knockSocket()
+  }
+
+  function playerGone() {
+    playerStarted = false
+    playing = false
+    loadPending = false
+    if (currentId !== "") playerError = "mpv stopped"
   }
 
   // ------------------------------------------------------------- cursor
@@ -1174,7 +1214,9 @@ Panel {
   function onOpened() {
     // The badge is the notification, so opening the panel lands wherever the
     // user's attention is owed: inbox when it has anything, else the player.
-    if (inbox.length > 0) setView("inbox")
+    // Fork: something actually playing wins over the inbox.
+    if (playing) setView("player")
+    else if (inbox.length > 0) setView("inbox")
     else if (currentId !== "") setView("player")
     else if (queue.length > 0) setView("queue")
     else setView("shows")
